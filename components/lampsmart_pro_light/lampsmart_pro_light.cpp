@@ -17,6 +17,7 @@ namespace esphome
 
     void LampSmartProLight::setup()
     {
+      ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", this->get_object_id().c_str(), this->get_object_id().c_str());
       register_service(&LampSmartProLight::on_pair, "pair_" + this->get_object_id());
       register_service(&LampSmartProLight::on_unpair, "unpair_" + this->get_object_id());
     }

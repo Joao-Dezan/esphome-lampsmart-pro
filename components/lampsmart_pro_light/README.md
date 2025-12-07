@@ -1,19 +1,24 @@
-# Known issues
+# Componente LampSmart Pro Light
 
-* Only tested with Marpou Ceiling CCT light (definitely doesn't support RGB lights currently, but that could be added in the future).
+Componente customizado do ESPHome para controlar lâmpadas LampSmart Pro via Bluetooth Low Energy (BLE).
 
-# How to try it
+## Requisitos
 
-1. Create an ESPHome configuration that references the repo (using `external_components`)
-2. Add a light entity to the configuration with the `lampsmart_pro_light` platform
-3. Build the configuration and flash it to an ESP32 device (since BLE is used, ESP8266-based devices are a no-go)
-4. Add the new ESPHome node to your Home Assistant instance
-5. Use the newly exposed service (`esphome.<esphome-node-name>_pair`) to pair with your light (call the service withing 5 seconds of powering it with a switch.
-6. Enjoy controlling your Marpou light with Home Assistant!
+- ESP32 (ESP8266 não suportado)
+- ESPHome 2025.11.4+
+- API com `custom_services: true` habilitado
 
-# Example configuration
+## Configuração Mínima
 
 ```yaml
+api:
+  encryption:
+    key: "SUA_CHAVE"
+  custom_services: true  # OBRIGATÓRIO
+
+external_components:
+  - source: github://Joao-Dezan/esphome-lampsmart-pro
+
 light:
   - platform: lampsmart_pro_light
     name: Kitchen Light
@@ -21,8 +26,35 @@ light:
     default_transition_length: 0s
 ```
 
-# Potentially fixable issues
+## Como Parear
 
-If this component works, but the cold and warm temperatures are reversed (that is, setting the temperature in Home Assistant to warm results in cold/blue light, and setting it to cold results in warm/yellow light), add a `reversed: true` line to your `lightsmart_pro_light` config.
+1. **Desligue** a lâmpada completamente
+2. **Ligue** a lâmpada novamente
+3. **Dentro de 5 segundos**, execute o serviço no Home Assistant:
+   - `esphome.<nome-dispositivo>_pair_<nome-luz>`
+4. A lâmpada estará pareada!
 
-If the minimum brightness is too bright, and you know that your light can go darker - try changing the minimum brightness via the `min_brightness` configuration option (it takes a number between 1 and 255).
+## Problemas Conhecidos
+
+* Apenas testado com lâmpadas Marpou Ceiling CCT
+* Não suporta RGB atualmente (pode ser adicionado no futuro)
+
+## Soluções para Problemas Comuns
+
+### Temperaturas de cor invertidas
+Se o branco quente aparece como frio e vice-versa:
+```yaml
+light:
+  - platform: lampsmart_pro_light
+    name: Minha Luz
+    reversed: true
+```
+
+### Brilho mínimo muito alto
+Ajuste o `min_brightness` (1-255 em hexadecimal):
+```yaml
+light:
+  - platform: lampsmart_pro_light
+    name: Minha Luz
+    min_brightness: 0x3  # Valor mais baixo
+```

@@ -1,16 +1,35 @@
-external_components:
-  # shorthand
-  source: github://zt8989/esphome-lampsmart-pro
+# Exemplo de configuração completa para LampSmart Pro
+# IMPORTANTE: Adicione esta configuração ao seu arquivo YAML do ESPHome
 
+# API com custom_services habilitado (OBRIGATÓRIO para pareamento)
+api:
+  encryption:
+    key: "SUA_CHAVE_DE_CRIPTOGRAFIA_AQUI"
+  custom_services: true
+
+# Componente externo
+external_components:
+  - source: github://Joao-Dezan/esphome-lampsmart-pro
+    # ou use: github://zt8989/esphome-lampsmart-pro
+
+# Configuração da luz
 light:
   - platform: lampsmart_pro_light
     name: Bed Room Light
-    group: 1
+    group: 1  # Use o mesmo group para luz e ventilador do mesmo dispositivo
     default_transition_length: 0s
-    duration: 500
+    duration: 500  # Duração da transmissão BLE em milissegundos
 
+# Configuração do ventilador (opcional)
 fan:
   - platform: lampsmart_pro_light
-    group: 1
     name: Bed Room Fan
+    group: 1  # Mesmo group da luz
     duration: 500
+
+# INSTRUÇÕES DE PARAMENTO:
+# 1. Desligue a lâmpada completamente
+# 2. Ligue a lâmpada novamente
+# 3. Dentro de 5 segundos, execute o serviço no Home Assistant:
+#    esphome.<nome-do-dispositivo>_pair_bed_room_light
+# 4. A lâmpada estará pareada e pronta para uso!
