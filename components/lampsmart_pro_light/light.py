@@ -10,6 +10,7 @@ from esphome.const import (
     CONF_REVERSED,
     CONF_MIN_BRIGHTNESS, # New in 2023.5
     CONF_GROUP,
+    CONF_DEFAULT_TRANSITION_LENGTH,
 )
 
 AUTO_LOAD = ["esp32_ble"]
@@ -30,6 +31,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_REVERSED, default=False): cv.boolean,
             cv.Optional(CONF_MIN_BRIGHTNESS, default=0x7): cv.hex_uint8_t,
             cv.Optional(CONF_GROUP, default=0x0): cv.hex_uint8_t,
+            cv.Optional(CONF_DEFAULT_TRANSITION_LENGTH, default="0s"): cv.positive_time_period_milliseconds,
         }
     ),
     cv.has_none_or_all_keys(
