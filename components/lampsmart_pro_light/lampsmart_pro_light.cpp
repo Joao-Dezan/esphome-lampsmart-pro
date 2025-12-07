@@ -132,24 +132,32 @@ namespace esphome
       ESP_LOGCONFIG(TAG, "  Transmission Duration: %d millis", tx_duration_);
       
       // Tenta registrar os serviços aqui também, caso setup() e setup_state() não sejam chamados
+      ESP_LOGI(TAG, "dump_config() - services_registered_: %s", services_registered_ ? "true" : "false");
+      ESP_LOGI(TAG, "dump_config() - light_state_: %s", light_state_ ? "NOT NULL" : "NULL");
+      
       if (!services_registered_) {
         if (light_state_) {
           std::string object_id = light_state_->get_object_id();
-          ESP_LOGI(TAG, "Tentando registrar servicos no dump_config(), object_id: %s", object_id.c_str());
+          ESP_LOGI(TAG, "Tentando registrar servicos no dump_config(), object_id do LightState: %s", object_id.c_str());
           register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
           register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
           services_registered_ = true;
-          ESP_LOGI(TAG, "Servicos customizados registrados no dump_config()!");
+          ESP_LOGI(TAG, "Servicos customizados registrados no dump_config() com object_id do LightState!");
         } else {
           std::string object_id = this->get_object_id();
+          ESP_LOGI(TAG, "dump_config() - object_id do componente: '%s' (vazio: %s)", object_id.c_str(), object_id.empty() ? "SIM" : "NAO");
           if (!object_id.empty()) {
             ESP_LOGI(TAG, "Tentando registrar servicos no dump_config() com object_id do componente: %s", object_id.c_str());
             register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
             register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
             services_registered_ = true;
-            ESP_LOGI(TAG, "Servicos customizados registrados no dump_config()!");
+            ESP_LOGI(TAG, "Servicos customizados registrados no dump_config() com object_id do componente!");
+          } else {
+            ESP_LOGE(TAG, "Nao foi possivel registrar servicos: light_state_ NULL e object_id vazio!");
           }
         }
+      } else {
+        ESP_LOGI(TAG, "Servicos ja foram registrados anteriormente, pulando registro no dump_config()");
       }
     }
 
