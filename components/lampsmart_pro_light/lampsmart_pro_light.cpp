@@ -34,19 +34,11 @@ namespace esphome
       ESP_LOGI(TAG, "Object ID: %s", object_id.c_str());
       ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
       
-      try {
-        register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
-        ESP_LOGI(TAG, "Servico pair_%s registrado", object_id.c_str());
-      } catch (...) {
-        ESP_LOGE(TAG, "ERRO ao registrar servico pair_%s", object_id.c_str());
-      }
+      register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
+      ESP_LOGI(TAG, "Servico pair_%s registrado", object_id.c_str());
       
-      try {
-        register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
-        ESP_LOGI(TAG, "Servico unpair_%s registrado", object_id.c_str());
-      } catch (...) {
-        ESP_LOGE(TAG, "ERRO ao registrar servico unpair_%s", object_id.c_str());
-      }
+      register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+      ESP_LOGI(TAG, "Servico unpair_%s registrado", object_id.c_str());
       
       ESP_LOGI(TAG, "=== Servicos customizados registrados com sucesso! ===");
     }
