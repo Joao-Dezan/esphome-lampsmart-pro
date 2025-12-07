@@ -30,17 +30,19 @@ namespace esphome
       this->light_state_ = state;
       
       // Registra os serviços customizados quando o LightState é configurado
-      std::string object_id = this->get_object_id();
-      ESP_LOGI(TAG, "Object ID: %s", object_id.c_str());
-      ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
-      
-      register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
-      ESP_LOGI(TAG, "Servico pair_%s registrado", object_id.c_str());
-      
-      register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
-      ESP_LOGI(TAG, "Servico unpair_%s registrado", object_id.c_str());
-      
-      ESP_LOGI(TAG, "=== Servicos customizados registrados com sucesso! ===");
+      if (state) {
+        std::string object_id = state->get_object_id();
+        ESP_LOGI(TAG, "Object ID: %s", object_id.c_str());
+        ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
+        
+        register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
+        ESP_LOGI(TAG, "Servico pair_%s registrado", object_id.c_str());
+        
+        register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+        ESP_LOGI(TAG, "Servico unpair_%s registrado", object_id.c_str());
+        
+        ESP_LOGI(TAG, "=== Servicos customizados registrados com sucesso! ===");
+      }
     }
 
     light::LightTraits LampSmartProLight::get_traits()
@@ -122,11 +124,11 @@ namespace esphome
       
       // Tenta registrar serviços aqui também como último recurso
       if (light_state_) {
-        std::string object_id = this->get_object_id();
+        std::string object_id = light_state_->get_object_id();
         ESP_LOGI(TAG, "=== dump_config(): Tentando registrar servicos, object_id: %s ===", object_id.c_str());
         register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
         register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
-        ESP_LOGI(TAG, "=== Servicos registrados no dump_config() ===");
+        ESP_LOGI(TAG, "=== Servicos registrados no dump_config(): pair_%s / unpair_%s ===", object_id.c_str(), object_id.c_str());
       }
     }
 

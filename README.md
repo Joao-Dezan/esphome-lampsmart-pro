@@ -179,9 +179,17 @@ Se os serviços `pair_` e `unpair_` não aparecem no Home Assistant, siga estes 
    - Note que espaços são substituídos por underscores e tudo fica em minúsculas
 
 6. **Procure os serviços no Developer Tools**:
-   - Vá em **Configurações** → **Automações e Cenas** → **Serviços**
-   - Digite `esphome` na busca
+   - Vá em **Configurações** → **Ferramentas de Desenvolvimento** (ícone de martelo/chave de fenda)
+   - Clique na aba **Serviços**
+   - No campo "Serviço", digite `esphome` na busca
    - Você deve ver todos os serviços disponíveis, incluindo os de pareamento
+   - Os serviços aparecerão como: `esphome.<nome-dispositivo>_pair_<nome-entidade>` e `esphome.<nome-dispositivo>_unpair_<nome-entidade>`
+   
+   **Exemplo visual:**
+   - Abra **Ferramentas de Desenvolvimento** → **Serviços**
+   - No campo de busca, digite: `esphome.sensor_teste_pair`
+   - Você deve ver: `esphome.sensor_teste_pair_bed_room_light`
+   - E também: `esphome.sensor_teste_unpair_bed_room_light`
 
 ### Lâmpada não responde após pareamento
 - Verifique se o ESP32 está próximo à lâmpada (BLE tem alcance limitado)
