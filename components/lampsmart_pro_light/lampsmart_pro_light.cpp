@@ -17,9 +17,18 @@ namespace esphome
 
     void LampSmartProLight::setup()
     {
-      ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", this->get_object_id().c_str(), this->get_object_id().c_str());
-      register_service(&LampSmartProLight::on_pair, "pair_" + this->get_object_id());
-      register_service(&LampSmartProLight::on_unpair, "unpair_" + this->get_object_id());
+      // setup() pode não ser chamado para LightOutput, então registramos em setup_state()
+    }
+
+    void LampSmartProLight::setup_state(light::LightState *state)
+    {
+      this->light_state_ = state;
+      // Registra os serviços customizados quando o LightState é configurado
+      std::string object_id = this->get_object_id();
+      ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
+      register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
+      register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+      ESP_LOGI(TAG, "Servicos customizados registrados com sucesso!");
     }
 
     light::LightTraits LampSmartProLight::get_traits()

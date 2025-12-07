@@ -28,7 +28,7 @@ namespace esphome
       void set_min_brightness(uint8_t min_brightness) { min_brightness_ = min_brightness; }
       void set_tx_duration(uint32_t tx_duration) { tx_duration_ = tx_duration; }
       void set_group_id(uint8_t group_id) { group_id_ = group_id; }
-      void setup_state(light::LightState *state) override { this->light_state_ = state; }
+      void setup_state(light::LightState *state) override;
       void write_state(light::LightState *state) override;
       light::LightTraits get_traits() override;
 
