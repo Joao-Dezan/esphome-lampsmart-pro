@@ -18,7 +18,7 @@ LampSmartProFan = lampsmartpro_ns.class_('LampSmartProFan', cg.Component, fan.Fa
 
 
 CONFIG_SCHEMA = cv.All(
-    fan.fan_schema(fan.Fan).extend(
+    fan.fan_schema(type_=LampSmartProFan).extend(
         {
             cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(LampSmartProFan),
             cv.Optional(CONF_DURATION, default=100): cv.positive_int,

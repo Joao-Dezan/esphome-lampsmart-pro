@@ -20,7 +20,7 @@ LampSmartProLight = lampsmartpro_ns.class_('LampSmartProLight', cg.Component, li
 
 
 CONFIG_SCHEMA = cv.All(
-    light.light_schema(light.LightOutput).extend(
+    light.light_schema(type_=LampSmartProLight).extend(
         {
             cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(LampSmartProLight),
             cv.Optional(CONF_DURATION, default=100): cv.positive_int,
