@@ -1,20 +1,40 @@
 # Como Usar os Serviços de Pareamento
 
+## 📌 Formato Atual dos Serviços Customizados do ESPHome
+
+Os serviços customizados registrados via `CustomAPIDevice::register_service()` no ESPHome seguem o formato:
+
+```
+esphome.<nome-dispositivo>_<nome-servico>
+```
+
+Onde:
+- `<nome-dispositivo>` = nome do dispositivo ESPHome (espaços viram `_`, tudo minúsculo)
+- `<nome-servico>` = nome do serviço registrado (ex: `pair_bed_room_light`)
+
+**Exemplo:** Para um dispositivo chamado `sensor-teste` com serviço `pair_bed_room_light`:
+```
+esphome.sensor_teste_pair_bed_room_light
+```
+
 ## ⚠️ Problema Conhecido
 
-Os serviços customizados do ESPHome podem não aparecer na lista de serviços do Home Assistant, **mas eles funcionam perfeitamente** se você usar o nome completo do serviço.
+Os serviços customizados do ESPHome podem não aparecer na lista suspensa de serviços do Home Assistant, **mas eles funcionam perfeitamente** se você usar o nome completo do serviço manualmente.
 
 ## ✅ Solução Rápida (Recomendada)
 
-### Método 1: Via Developer Tools (Mais Rápido)
+### Método 1: Via Developer Tools (Mais Rápido) - RECOMENDADO
 
 1. Vá em **Configurações** → **Ferramentas de Desenvolvimento** → **Serviços**
-2. No campo **"Serviço"**, digite manualmente (não use a lista suspensa):
+2. No campo **"Serviço"**, digite manualmente o nome completo (não use a lista suspensa):
    ```
    esphome.sensor_teste_pair_bed_room_light
    ```
+   **Importante:** Digite o nome completo, não selecione da lista suspensa, pois os serviços customizados podem não aparecer lá.
 3. Clique em **"Executar"**
 4. Pronto! O serviço será executado mesmo que não apareça na lista
+
+**Dica:** Você pode verificar se o serviço existe usando o botão "Escolher entidade" ao lado do campo de serviço, mas geralmente é mais rápido digitar diretamente.
 
 **Para desparear:**
 ```
@@ -25,6 +45,30 @@ esphome.sensor_teste_unpair_bed_room_light
 
 Adicione em `configuration.yaml` ou `scripts.yaml`:
 
+**Formato correto para scripts.yaml:**
+
+```yaml
+parear_bed_room_light:
+  alias: "Parear Bed Room Light"
+  icon: mdi:lightbulb-on
+  sequence:
+    - service: esphome.sensor_teste_pair_bed_room_light
+    - delay:
+        seconds: 1
+    # Opcional: notificação
+    # - service: notify.mobile_app_seu_celular
+    #   data:
+    #     message: "Comando de pareamento enviado! Ligue a lâmpada agora."
+
+desparear_bed_room_light:
+  alias: "Desparear Bed Room Light"
+  icon: mdi:lightbulb-off
+  sequence:
+    - service: esphome.sensor_teste_unpair_bed_room_light
+```
+
+**OU se estiver usando configuration.yaml (com a chave `script:`):**
+
 ```yaml
 script:
   parear_bed_room_light:
@@ -32,17 +76,20 @@ script:
     icon: mdi:lightbulb-on
     sequence:
       - service: esphome.sensor_teste_pair_bed_room_light
-      - delay: 00:00:01
-      - service: notify.mobile_app_seu_celular  # Opcional: notificação
-        data:
-          message: "Comando de pareamento enviado! Ligue a lâmpada agora."
-  
+      - delay:
+          seconds: 1
+
   desparear_bed_room_light:
     alias: "Desparear Bed Room Light"
     icon: mdi:lightbulb-off
     sequence:
       - service: esphome.sensor_teste_unpair_bed_room_light
 ```
+
+**Importante:** 
+- Se usar `scripts.yaml`, **NÃO** inclua a chave `script:` no início
+- Se usar `configuration.yaml`, **SIM**, inclua a chave `script:` no início
+- O formato do `delay` mudou: use `delay: seconds: 1` em vez de `delay: 00:00:01`
 
 Depois de salvar e recarregar, você terá dois scripts disponíveis:
 - `script.parear_bed_room_light`
@@ -102,10 +149,98 @@ automation:
 
 ## ❓ Verificação
 
-Para verificar se os serviços estão funcionando, execute o serviço e verifique os logs do ESPHome. Você deve ver:
-```
-[I][lampsmartpro: ] LampSmartProLight::on_pair called!
-```
+Para verificar se os serviços estão funcionando:
 
-Isso confirma que o serviço foi executado com sucesso.
+1. **Execute o serviço** no Home Assistant (Developer Tools → Serviços)
+2. **Verifique os logs do ESPHome** - você deve ver logs detalhados como:
+
+   **Ao executar o serviço de pareamento:**
+   ```
+   [I][lampsmartpro: ] ========================================
+   [I][lampsmartpro: ] COMANDO DE PARAMENTO RECEBIDO!
+   [I][lampsmartpro: ] LampSmartProLight::on_pair() chamado
+   [I][lampsmartpro: ] Host ID: [0xXX, 0xXX]
+   [I][lampsmartpro: ] Group ID: 0xXX
+   [I][lampsmartpro: ] Enviando comando de pareamento via BLE...
+   [I][lampsmartpro: ] Comando de pareamento enviado com sucesso!
+   [I][lampsmartpro: ] Aguarde 5 segundos e ligue a lampada para completar o pareamento
+   [I][lampsmartpro: ] ========================================
+   ```
+
+   **Ao executar o serviço de despareamento:**
+   ```
+   [I][lampsmartpro: ] ========================================
+   [I][lampsmartpro: ] COMANDO DE DESPARAMENTO RECEBIDO!
+   [I][lampsmartpro: ] LampSmartProLight::on_unpair() chamado
+   [I][lampsmartpro: ] Host ID: [0xXX, 0xXX]
+   [I][lampsmartpro: ] Group ID: 0xXX
+   [I][lampsmartpro: ] Enviando comando de despareamento via BLE...
+   [I][lampsmartpro: ] Comando de despareamento enviado com sucesso!
+   [I][lampsmartpro: ] ========================================
+   ```
+
+3. **Verifique os logs de inicialização** - ao iniciar o dispositivo, você deve ver:
+   ```
+   [I][lampsmartpro: ] Servicos ja registrados! Object_id usado: bed_room_light
+   [I][lampsmartpro: ] Servicos esperados: pair_bed_room_light e unpair_bed_room_light
+   ```
+
+**Nota:** Os logs mostram quando o comando é **enviado** pelo ESP32. O pareamento é bem-sucedido quando você consegue controlar a lâmpada após executar o comando e ligar a lâmpada dentro de 5 segundos.
+
+## 🔍 Troubleshooting
+
+### Erro ao adicionar scripts no scripts.yaml
+
+**Erro:** `extra keys not allowed` ou `required key not provided @ data['sequence']`
+
+**Causa:** Formato incorreto do YAML ou uso incorreto da chave `script:`
+
+**Solução:**
+1. Se usar `scripts.yaml` (arquivo separado), **NÃO** inclua a chave `script:` no início:
+   ```yaml
+   # CORRETO para scripts.yaml
+   parear_bed_room_light:
+     alias: "Parear Bed Room Light"
+     sequence:
+       - service: esphome.sensor_teste_pair_bed_room_light
+   ```
+
+2. Se usar `configuration.yaml`, **SIM**, inclua a chave `script:`:
+   ```yaml
+   # CORRETO para configuration.yaml
+   script:
+     parear_bed_room_light:
+       alias: "Parear Bed Room Light"
+       sequence:
+         - service: esphome.sensor_teste_pair_bed_room_light
+   ```
+
+3. Use o formato correto do `delay`:
+   ```yaml
+   # CORRETO
+   - delay:
+       seconds: 1
+   
+   # ERRADO (formato antigo)
+   - delay: 00:00:01
+   ```
+
+### Os serviços não aparecem na lista do Home Assistant
+
+**Isso é normal!** Os serviços customizados do ESPHome podem não aparecer na lista suspensa, mas funcionam quando chamados pelo nome completo.
+
+**Solução:** Use o nome completo do serviço manualmente no Developer Tools.
+
+### Como descobrir o nome exato do serviço
+
+1. Verifique os logs do ESPHome na inicialização
+2. Procure por: `Servicos esperados: pair_<object-id> e unpair_<object-id>`
+3. O nome completo será: `esphome.<nome-dispositivo>_pair_<object-id>`
+
+### O serviço não executa
+
+1. Verifique se `custom_services: true` está configurado na API do ESPHome
+2. Recompile e faça upload do firmware (não basta reiniciar)
+3. Reinicie o Home Assistant ou remova e adicione novamente o dispositivo ESPHome
+4. Verifique se está usando o nome completo correto do serviço
 

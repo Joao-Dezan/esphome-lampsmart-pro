@@ -181,18 +181,37 @@ namespace esphome
 
     void LampSmartProLight::on_pair()
     {
-      ESP_LOGD(TAG, "LampSmartProLight::on_pair called!");
-
+      ESP_LOGI(TAG, "========================================");
+      ESP_LOGI(TAG, "COMANDO DE PARAMENTO RECEBIDO!");
+      ESP_LOGI(TAG, "LampSmartProLight::on_pair() chamado");
+      
       char *hostId = getHostDeviceIdentifier();
+      ESP_LOGI(TAG, "Host ID: [0x%02X, 0x%02X]", hostId[0], hostId[1]);
+      ESP_LOGI(TAG, "Group ID: 0x%02X", group_id_);
+      ESP_LOGI(TAG, "Enviando comando de pareamento via BLE...");
+      
       send_packet(CMD_PAIR, hostId[0], hostId[1]);
+      
+      ESP_LOGI(TAG, "Comando de pareamento enviado com sucesso!");
+      ESP_LOGI(TAG, "Aguarde 5 segundos e ligue a lampada para completar o pareamento");
+      ESP_LOGI(TAG, "========================================");
     }
 
     void LampSmartProLight::on_unpair()
     {
-      ESP_LOGD(TAG, "LampSmartProLight::on_unpair called!");
-
+      ESP_LOGI(TAG, "========================================");
+      ESP_LOGI(TAG, "COMANDO DE DESPARAMENTO RECEBIDO!");
+      ESP_LOGI(TAG, "LampSmartProLight::on_unpair() chamado");
+      
       char *hostId = getHostDeviceIdentifier();
+      ESP_LOGI(TAG, "Host ID: [0x%02X, 0x%02X]", hostId[0], hostId[1]);
+      ESP_LOGI(TAG, "Group ID: 0x%02X", group_id_);
+      ESP_LOGI(TAG, "Enviando comando de despareamento via BLE...");
+      
       send_packet(CMD_UNPAIR, hostId[0], hostId[1]);
+      
+      ESP_LOGI(TAG, "Comando de despareamento enviado com sucesso!");
+      ESP_LOGI(TAG, "========================================");
     }
 
     void LampSmartProLight::send_packet(uint16_t cmd, uint8_t arg1, uint8_t arg2)
@@ -200,11 +219,26 @@ namespace esphome
       char *hostId = getHostDeviceIdentifier();
       uint8_t *packet = (uint8_t *)buildPacket(cmd, hostId[0], hostId[1], arg1, arg2, group_id_);
 
+      // Log do comando sendo enviado
+      const char* cmd_name = "";
+      if (cmd == CMD_PAIR) cmd_name = "PAIR";
+      else if (cmd == CMD_UNPAIR) cmd_name = "UNPAIR";
+      else if (cmd == CMD_TURN_ON) cmd_name = "TURN_ON";
+      else if (cmd == CMD_TURN_OFF) cmd_name = "TURN_OFF";
+      else if (cmd == CMD_DIM) cmd_name = "DIM";
+      else cmd_name = "UNKNOWN";
+      
+      ESP_LOGD(TAG, "send_packet() - Comando: %s (0x%02X), arg1: 0x%02X, arg2: 0x%02X, group: 0x%02X", 
+               cmd_name, cmd, arg1, arg2, group_id_);
+      ESP_LOGD(TAG, "Transmitindo pacote BLE por %d ms...", tx_duration_);
+
       // Skip first byte (BLE packet size indicator)
       ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_config_adv_data_raw(&packet[1], 31));
       ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_start_advertising(&ADVERTISING_PARAMS));
       delay(tx_duration_);
       ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_stop_advertising());
+      
+      ESP_LOGD(TAG, "Pacote BLE transmitido com sucesso");
     }
 
   } // namespace lampsmartpro
