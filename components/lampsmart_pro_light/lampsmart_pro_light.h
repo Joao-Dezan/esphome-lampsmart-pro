@@ -48,6 +48,7 @@ namespace esphome
       uint32_t tx_duration_;
       uint8_t group_id_;
       light::LightState *light_state_;
+      bool services_registered_{false};
     };
 
   } // namespace lampsmartpro
