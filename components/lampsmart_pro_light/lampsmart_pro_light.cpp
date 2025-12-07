@@ -17,27 +17,20 @@ namespace esphome
 
     void LampSmartProLight::setup()
     {
-      // setup() pode não ser chamado para LightOutput, então registramos em setup_state()
+      // Registra os serviços customizados no setup() para garantir que sejam registrados a tempo
+      // O object_id do LightOutput é o mesmo do LightState quando criados do mesmo name no YAML
+      std::string object_id = this->get_object_id();
+      ESP_LOGI(TAG, "LampSmartProLight::setup() chamado, object_id: %s", object_id.c_str());
+      ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
+      register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
+      register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+      ESP_LOGI(TAG, "Servicos customizados registrados com sucesso!");
     }
 
     void LampSmartProLight::setup_state(light::LightState *state)
     {
       this->light_state_ = state;
-      
-      // Registra os serviços customizados quando o LightState é configurado
-      // Este é o melhor momento pois temos acesso ao state com object_id válido
-      if (state) {
-        std::string object_id = state->get_object_id();
-        ESP_LOGI(TAG, "setup_state() chamado, object_id: %s", object_id.c_str());
-        ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
-        
-        register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
-        register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
-        
-        ESP_LOGI(TAG, "Servicos customizados registrados com sucesso!");
-      } else {
-        ESP_LOGE(TAG, "setup_state() chamado com state NULL!");
-      }
+      ESP_LOGD(TAG, "LampSmartProLight::setup_state() chamado, object_id: %s", state ? state->get_object_id().c_str() : "NULL");
     }
 
     light::LightTraits LampSmartProLight::get_traits()
