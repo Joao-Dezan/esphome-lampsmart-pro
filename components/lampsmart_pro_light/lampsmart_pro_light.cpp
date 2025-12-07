@@ -17,16 +17,22 @@ namespace esphome
 
     void LampSmartProLight::setup()
     {
-      ESP_LOGI(TAG, "LampSmartProLight::setup() chamado");
+      ESP_LOGI(TAG, "=== LampSmartProLight::setup() chamado ===");
+      std::string object_id = this->get_object_id();
+      ESP_LOGI(TAG, "setup() - object_id: '%s' (vazio: %s)", object_id.c_str(), object_id.empty() ? "SIM" : "NAO");
+      
       // Tenta registrar no setup(), mas se o object_id não estiver disponível, 
       // registraremos no setup_state() ou dump_config()
-      if (!this->get_object_id().empty()) {
-        std::string object_id = this->get_object_id();
-        ESP_LOGI(TAG, "Registrando servicos no setup(), object_id: %s", object_id.c_str());
-        register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
-        register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+      if (!object_id.empty()) {
+        std::string pair_service = "pair_" + object_id;
+        std::string unpair_service = "unpair_" + object_id;
+        ESP_LOGI(TAG, "Registrando servicos no setup():");
+        ESP_LOGI(TAG, "  - pair: %s", pair_service.c_str());
+        ESP_LOGI(TAG, "  - unpair: %s", unpair_service.c_str());
+        register_service(&LampSmartProLight::on_pair, pair_service);
+        register_service(&LampSmartProLight::on_unpair, unpair_service);
         services_registered_ = true;
-        ESP_LOGI(TAG, "Servicos customizados registrados no setup()!");
+        ESP_LOGI(TAG, "Servicos customizados registrados no setup() com SUCESSO!");
       } else {
         ESP_LOGI(TAG, "object_id ainda não disponível no setup(), tentando em setup_state() ou dump_config()");
       }
@@ -34,20 +40,25 @@ namespace esphome
 
     void LampSmartProLight::setup_state(light::LightState *state)
     {
-      ESP_LOGI(TAG, "LampSmartProLight::setup_state() chamado");
+      ESP_LOGI(TAG, "=== LampSmartProLight::setup_state() chamado ===");
       this->light_state_ = state;
+      ESP_LOGI(TAG, "setup_state() - state: %s", state ? "NOT NULL" : "NULL");
       
       // Registra os serviços se ainda não foram registrados
       if (!services_registered_ && state) {
         std::string object_id = state->get_object_id();
-        ESP_LOGI(TAG, "Registrando servicos no setup_state(), object_id: %s", object_id.c_str());
-        ESP_LOGI(TAG, "Registrando servicos customizados: pair_%s / unpair_%s", object_id.c_str(), object_id.c_str());
-        register_service(&LampSmartProLight::on_pair, "pair_" + object_id);
-        register_service(&LampSmartProLight::on_unpair, "unpair_" + object_id);
+        std::string pair_service = "pair_" + object_id;
+        std::string unpair_service = "unpair_" + object_id;
+        ESP_LOGI(TAG, "Registrando servicos no setup_state():");
+        ESP_LOGI(TAG, "  - object_id: %s", object_id.c_str());
+        ESP_LOGI(TAG, "  - pair: %s", pair_service.c_str());
+        ESP_LOGI(TAG, "  - unpair: %s", unpair_service.c_str());
+        register_service(&LampSmartProLight::on_pair, pair_service);
+        register_service(&LampSmartProLight::on_unpair, unpair_service);
         services_registered_ = true;
-        ESP_LOGI(TAG, "Servicos customizados registrados no setup_state()!");
+        ESP_LOGI(TAG, "Servicos customizados registrados no setup_state() com SUCESSO!");
       } else if (services_registered_) {
-        ESP_LOGD(TAG, "Servicos já registrados anteriormente");
+        ESP_LOGI(TAG, "setup_state() - Servicos ja registrados anteriormente (em setup())");
       } else {
         ESP_LOGE(TAG, "setup_state() chamado com state NULL!");
       }
@@ -134,6 +145,13 @@ namespace esphome
       // Tenta registrar os serviços aqui também, caso setup() e setup_state() não sejam chamados
       ESP_LOGI(TAG, "dump_config() - services_registered_: %s", services_registered_ ? "true" : "false");
       ESP_LOGI(TAG, "dump_config() - light_state_: %s", light_state_ ? "NOT NULL" : "NULL");
+      
+      // Se os serviços já foram registrados, mostra qual object_id foi usado
+      if (services_registered_ && light_state_) {
+        std::string object_id = light_state_->get_object_id();
+        ESP_LOGI(TAG, "Servicos ja registrados! Object_id usado: %s", object_id.c_str());
+        ESP_LOGI(TAG, "Servicos esperados: pair_%s e unpair_%s", object_id.c_str(), object_id.c_str());
+      }
       
       if (!services_registered_) {
         if (light_state_) {
