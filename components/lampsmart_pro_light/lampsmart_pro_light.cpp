@@ -99,8 +99,9 @@ namespace esphome
       ESP_LOGD(TAG, "write state: remote: %s, current: %s", ONOFF(state->remote_values.is_on()), ONOFF(state->current_values.is_on()));
       if (state->current_values.is_on()) {
         if (!_is_off.has_value() || _is_off.value() != state->current_values.is_on()) {
+          ESP_LOGI(TAG, "Enviando comando TURN_ON para a lampada...");
           send_packet(CMD_TURN_ON, 0, 0);
-          ESP_LOGD(TAG, "write state: send turn on");
+          ESP_LOGI(TAG, "Comando TURN_ON enviado");
         }
         _is_off = state->current_values.is_on();
         uint8_t cwi = (uint8_t)(0xff * cwf);
@@ -119,13 +120,14 @@ namespace esphome
           }
         }
 
-        ESP_LOGD(TAG, "LampSmartProLight::write_state called! Requested cw: %d, ww: %d", cwi, wwi);
-
+        ESP_LOGI(TAG, "Enviando comando DIM: cw=%d, ww=%d", cwi, wwi);
         send_packet(CMD_DIM, cwi, wwi);
+        ESP_LOGI(TAG, "Comando DIM enviado");
       } else {
         if (!_is_off.has_value() || _is_off.value() != state->current_values.is_on()) {
+            ESP_LOGI(TAG, "Enviando comando TURN_OFF para a lampada...");
             send_packet(CMD_TURN_OFF, 0, 0);
-            ESP_LOGD(TAG, "write state: send turn off");
+            ESP_LOGI(TAG, "Comando TURN_OFF enviado");
         }
         _is_off = state->current_values.is_on();
         return;
@@ -193,7 +195,31 @@ namespace esphome
       send_packet(CMD_PAIR, hostId[0], hostId[1]);
       
       ESP_LOGI(TAG, "Comando de pareamento enviado com sucesso!");
-      ESP_LOGI(TAG, "Aguarde 5 segundos e ligue a lampada para completar o pareamento");
+      ESP_LOGI(TAG, "");
+      ESP_LOGI(TAG, "*** PROCESSO DE PARAMENTO - SIGA ESTES PASSOS ***");
+      ESP_LOGI(TAG, "");
+      ESP_LOGI(TAG, "METODO 1 (Recomendado):");
+      ESP_LOGI(TAG, "  1. A lampada DEVE estar DESLIGADA (interruptor fisico)");
+      ESP_LOGI(TAG, "  2. Aguarde 10 segundos");
+      ESP_LOGI(TAG, "  3. Execute este comando de pareamento (ja foi enviado)");
+      ESP_LOGI(TAG, "  4. IMEDIATAMENTE (dentro de 5 segundos), LIGUE a lampada fisicamente");
+      ESP_LOGI(TAG, "  5. A lampada deve piscar ou mudar de estado se o pareamento funcionou");
+      ESP_LOGI(TAG, "");
+      ESP_LOGI(TAG, "METODO 2 (Alternativo - se metodo 1 nao funcionar):");
+      ESP_LOGI(TAG, "  1. LIGUE a lampada fisicamente");
+      ESP_LOGI(TAG, "  2. Aguarde 2 segundos");
+      ESP_LOGI(TAG, "  3. Execute o comando de pareamento");
+      ESP_LOGI(TAG, "  4. A lampada deve responder se o pareamento funcionou");
+      ESP_LOGI(TAG, "");
+      ESP_LOGI(TAG, "VERIFICACAO:");
+      ESP_LOGI(TAG, "  - Tente ligar/desligar a lampada pelo Home Assistant");
+      ESP_LOGI(TAG, "  - Se funcionar, o pareamento foi bem-sucedido");
+      ESP_LOGI(TAG, "  - Se nao funcionar, tente novamente com o outro metodo");
+      ESP_LOGI(TAG, "");
+      ESP_LOGI(TAG, "DICAS:");
+      ESP_LOGI(TAG, "  - O ESP32 deve estar proximo da lampada (max 2-3 metros)");
+      ESP_LOGI(TAG, "  - Algumas lampadas precisam de varias tentativas");
+      ESP_LOGI(TAG, "  - Aguarde pelo menos 10 segundos entre tentativas");
       ESP_LOGI(TAG, "========================================");
     }
 
@@ -228,17 +254,43 @@ namespace esphome
       else if (cmd == CMD_DIM) cmd_name = "DIM";
       else cmd_name = "UNKNOWN";
       
-      ESP_LOGD(TAG, "send_packet() - Comando: %s (0x%02X), arg1: 0x%02X, arg2: 0x%02X, group: 0x%02X", 
-               cmd_name, cmd, arg1, arg2, group_id_);
-      ESP_LOGD(TAG, "Transmitindo pacote BLE por %d ms...", tx_duration_);
+      ESP_LOGI(TAG, "send_packet() - Comando: %s (0x%02X)", cmd_name, cmd);
+      ESP_LOGI(TAG, "  Host ID: [0x%02X, 0x%02X]", hostId[0], hostId[1]);
+      ESP_LOGI(TAG, "  Args: arg1=0x%02X, arg2=0x%02X, group=0x%02X", arg1, arg2, group_id_);
+      
+      // Log do pacote completo (primeiros 16 bytes para debug)
+      ESP_LOGD(TAG, "Pacote BLE (primeiros 16 bytes):");
+      char hex_str[64];
+      for (int i = 0; i < 16 && i < 31; i++) {
+        sprintf(hex_str + (i * 3), "%02X ", packet[i + 1]);
+      }
+      ESP_LOGD(TAG, "  %s", hex_str);
+      
+      ESP_LOGI(TAG, "Transmitindo pacote BLE por %d ms...", tx_duration_);
 
       // Skip first byte (BLE packet size indicator)
-      ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_config_adv_data_raw(&packet[1], 31));
-      ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_start_advertising(&ADVERTISING_PARAMS));
-      delay(tx_duration_);
-      ESP_ERROR_CHECK_WITHOUT_ABORT(esp_ble_gap_stop_advertising());
+      esp_err_t err1 = esp_ble_gap_config_adv_data_raw(&packet[1], 31);
+      if (err1 != ESP_OK) {
+        ESP_LOGE(TAG, "ERRO ao configurar dados de advertising: 0x%X", err1);
+      }
       
-      ESP_LOGD(TAG, "Pacote BLE transmitido com sucesso");
+      esp_err_t err2 = esp_ble_gap_start_advertising(&ADVERTISING_PARAMS);
+      if (err2 != ESP_OK) {
+        ESP_LOGE(TAG, "ERRO ao iniciar advertising: 0x%X", err2);
+      } else {
+        ESP_LOGI(TAG, "Advertising iniciado com sucesso");
+      }
+      
+      delay(tx_duration_);
+      
+      esp_err_t err3 = esp_ble_gap_stop_advertising();
+      if (err3 != ESP_OK) {
+        ESP_LOGE(TAG, "ERRO ao parar advertising: 0x%X", err3);
+      } else {
+        ESP_LOGI(TAG, "Advertising parado");
+      }
+      
+      ESP_LOGI(TAG, "Pacote BLE transmitido com sucesso");
     }
 
   } // namespace lampsmartpro

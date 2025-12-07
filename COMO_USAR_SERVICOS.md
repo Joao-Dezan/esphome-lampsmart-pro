@@ -244,3 +244,42 @@ Para verificar se os serviços estão funcionando:
 3. Reinicie o Home Assistant ou remova e adicione novamente o dispositivo ESPHome
 4. Verifique se está usando o nome completo correto do serviço
 
+### Os comandos são enviados mas a lâmpada não responde
+
+**Sintoma:** Os logs mostram que os comandos estão sendo enviados (TURN_ON, TURN_OFF, DIM), mas a lâmpada não reage.
+
+**Causa:** O pareamento não foi bem-sucedido ou a lâmpada não está em modo de pareamento.
+
+**Solução passo a passo:**
+
+1. **Desligue a lâmpada completamente** (interruptor físico ou disjuntor)
+2. **Aguarde pelo menos 10 segundos** (importante para a lâmpada resetar)
+3. **Execute o serviço de pareamento** no Home Assistant:
+   ```
+   esphome.sensor_teste_pair_bed_room_light
+   ```
+4. **IMEDIATAMENTE** (dentro de 5 segundos), **ligue a lâmpada fisicamente**
+5. **Observe a lâmpada:**
+   - Se ela piscar ou mudar de estado, o pareamento pode ter funcionado
+   - Se não acontecer nada, repita o processo
+
+**Dicas importantes:**
+- ⚠️ **Tempo é crítico:** Você tem apenas 5 segundos após executar o comando para ligar a lâmpada
+- 📍 **Distância:** O ESP32 deve estar próximo à lâmpada (máximo 2-3 metros)
+- 🔄 **Tente várias vezes:** Algumas lâmpadas precisam de várias tentativas
+- 🔌 **Desligue completamente:** Use o interruptor físico ou disjuntor, não apenas pelo Home Assistant
+- ⏱️ **Aguarde entre tentativas:** Aguarde pelo menos 10 segundos entre tentativas
+
+**Verificação:**
+- Após o pareamento, tente ligar/desligar a lâmpada pelo Home Assistant
+- Se funcionar, o pareamento foi bem-sucedido
+- Se não funcionar, repita o processo de pareamento
+
+**Logs esperados quando funcionar:**
+```
+[I][lampsmartpro: ] Enviando comando TURN_ON para a lampada...
+[I][lampsmartpro: ] Comando TURN_ON enviado
+```
+
+Se você ver esses logs mas a lâmpada não responder, o problema é o pareamento, não o envio dos comandos.
+
