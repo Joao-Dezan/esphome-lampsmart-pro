@@ -96,10 +96,16 @@ Antes de tentar parear, verifique se os serviços de pareamento estão disponív
    - Vá na aba **Serviços** (se disponível)
    - Execute o serviço de pareamento
 
-   **Opção C - Via YAML (Automação/Script):**
+   **Opção C - Via YAML (Automação/Script) - RECOMENDADO se serviços não aparecem:**
    ```yaml
    service: esphome.sensor_teste_pair_bed_room_light
    ```
+   
+   **Opção D - Via Developer Tools (mesmo que não apareça na lista):**
+   - Vá em **Configurações** → **Ferramentas de Desenvolvimento** → **Serviços**
+   - No campo "Serviço", digite manualmente: `esphome.sensor_teste_pair_bed_room_light`
+   - Clique em **Executar**
+   - **Nota:** Mesmo que o serviço não apareça na lista suspensa, ele funcionará se você digitar o nome completo
 
    **⚠️ IMPORTANTE:** Se os serviços não aparecem, veja a seção "Solução de Problemas" abaixo.
 
@@ -190,6 +196,46 @@ Se os serviços `pair_` e `unpair_` não aparecem no Home Assistant, siga estes 
    - No campo de busca, digite: `esphome.sensor_teste_pair`
    - Você deve ver: `esphome.sensor_teste_pair_bed_room_light`
    - E também: `esphome.sensor_teste_unpair_bed_room_light`
+
+7. **Se os serviços NÃO aparecerem na interface (problema conhecido do Home Assistant):**
+   
+   **Solução Rápida - Use diretamente:**
+   - Vá em **Configurações** → **Ferramentas de Desenvolvimento** → **Serviços**
+   - No campo "Serviço", **digite manualmente** (não use a lista suspensa):
+     - `esphome.sensor_teste_pair_bed_room_light` (para parear)
+     - `esphome.sensor_teste_unpair_bed_room_light` (para desparear)
+   - Clique em **Executar**
+   - **Importante:** Mesmo que o serviço não apareça na lista, ele funcionará se você digitar o nome completo corretamente
+   
+   **Solução Permanente - Crie um Script:**
+   ```yaml
+   # Adicione em configuration.yaml ou scripts.yaml
+   script:
+     parear_bed_room_light:
+       alias: "Parear Bed Room Light"
+       sequence:
+         - service: esphome.sensor_teste_pair_bed_room_light
+       
+     desparear_bed_room_light:
+       alias: "Desparear Bed Room Light"
+       sequence:
+         - service: esphome.sensor_teste_unpair_bed_room_light
+   ```
+   
+   Depois de criar o script, você pode chamá-lo de qualquer lugar no Home Assistant, incluindo a interface gráfica.
+   
+   **Solução com Automação:**
+   ```yaml
+   # Exemplo de automação para parear quando um botão é pressionado
+   automation:
+     - alias: "Parear Lâmpada Bed Room"
+       trigger:
+         - platform: state
+           entity_id: input_button.parear_lampada  # Crie um input_button primeiro
+           to: 'pressed'
+       action:
+         - service: esphome.sensor_teste_pair_bed_room_light
+   ```
 
 ### Lâmpada não responde após pareamento
 - Verifique se o ESP32 está próximo à lâmpada (BLE tem alcance limitado)
